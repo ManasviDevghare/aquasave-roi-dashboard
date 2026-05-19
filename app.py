@@ -278,7 +278,7 @@ with tab1:
             st.write(f"**Total System Cost:** Rs{system_cost:,.0f}")
             st.write(f"**Total Gross Savings ({lifespan} yrs):** Rs{total_gross_savings:,.0f}")
             st.write(f"**Total Maintenance Cost ({lifespan} yrs):** Rs{total_maintenance_cost:,.0f}")
-            st.write(f"**Total Net Savings:**Rs₹{total_net_savings:,.0f}")
+            st.write(f"**Total Net Savings:** Rs{total_net_savings:,.0f}")
             st.write(f"**ROI:** {roi_percentage:.1f}%")
 
         with col5:
