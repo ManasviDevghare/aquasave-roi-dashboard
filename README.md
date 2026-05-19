@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Rainwater Harvesting ROI Calculator 💧
 
 An interactive web application that calculates the financial and environmental benefits of rainwater harvesting systems.
@@ -33,3 +34,6 @@ The system estimates:
 
 ## Developed By
 Manasvi Devghare
+=======
+# aquasave-roi-dashboard
+>>>>>>> 08524b1ad7c7f9212d4e8442258d3aaecaed78b4
