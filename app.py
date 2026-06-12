@@ -1,11 +1,56 @@
 import streamlit as st
 import pandas as pd 
+import requests
 from fpdf import FPDF
 import plotly.express as px
-from data.rainfall_data import cities
+from groq import Groq
+from data.rainfall_data import cities, city_coordinates
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+client = Groq(
+    api_key=st.secrets["GROQ_API_KEY"]
+)
+def get_weather_data(city):
+
+    try:
+        API_KEY = st.secrets["OPENWEATHER_API_KEY"]
+    except Exception:
+        API_KEY = None
+
+    fallback_weather = {
+        "Nagpur": {"temperature_2m": 32, "relative_humidity_2m": 55, "precipitation": 0, "wind_speed_10m": 10},
+        "Mumbai": {"temperature_2m": 29, "relative_humidity_2m": 78, "precipitation": 1.2, "wind_speed_10m": 14},
+        "Pune": {"temperature_2m": 27, "relative_humidity_2m": 65, "precipitation": 0.3, "wind_speed_10m": 9},
+        "Delhi": {"temperature_2m": 35, "relative_humidity_2m": 40, "precipitation": 0, "wind_speed_10m": 12}
+    }
+
+    if not API_KEY:
+        return fallback_weather.get(city)
+
+    url = (
+        f"https://api.openweathermap.org/data/2.5/weather"
+        f"?q={city}&appid={API_KEY}&units=metric"
+    )
+
+    try:
+        response = requests.get(url, timeout=10)
+
+        if response.status_code == 200:
+            data = response.json()
+
+            return {
+                "temperature_2m": data["main"]["temp"],
+                "relative_humidity_2m": data["main"]["humidity"],
+                "precipitation": data.get("rain", {}).get("1h", 0),
+                "wind_speed_10m": data["wind"]["speed"]
+            }
+
+        return fallback_weather.get(city)
+
+    except Exception:
+        return fallback_weather.get(city)
 st.markdown("""
 <style>
-
 /* Main App Background */
 .stApp {
     background-color: #F5F7FA;
@@ -55,7 +100,7 @@ h1, h2, h3 {
 """, unsafe_allow_html=True)
 # Page config
 st.set_page_config(
-    page_title="Rainwater Harvesting ROI Calculator",
+    page_title="AquaSave AI",
     layout="wide"
 )
 
@@ -67,15 +112,16 @@ st.markdown("""
     text-align: center;
     margin-bottom: 20px;
 ">
-    <h1 style="color: Navy blue; margin: 0;">💧 AquaSave ROI Dashboard</h1>
+    <h1 style="color: Navy blue; margin: 0;">💧 AquaSave AI Dashboard</h1>
     <p style="color: #f8fbff; font-size: 18px; margin-top: 8px;">
        Smart Rainwater Harvesting Analysis Tool
     </p>
 </div>
 """, unsafe_allow_html=True)
 st.markdown("""
-Calculate the Return on Investment (ROI) for your rainwater harvesting system.
-Enter your parameters below to see payback period, savings, and environmental impact.
+Calculate ROI, payback period, savings, and environmental impact for your
+rainwater harvesting system. AquaSave AI also provides smart AI recommendations and weather insights to help
+you improve system efficiency and make better decisions.
 """)
 tab1, tab2, tab3, tab4 = st.tabs([
     "Calculator",
@@ -289,6 +335,26 @@ with tab1:
             st.write(f"**Equivalent to:** {tanker_count:.1f} tanker trucks (10k L each)")
 
     st.divider()
+    st.subheader("🌦️ Live Weather Insights")
+
+    weather = get_weather_data(selected_city)
+
+    if weather:
+        w1, w2, w3, w4 = st.columns(4)
+
+        with w1:
+            st.metric("🌡️ Temperature", f"{weather.get('temperature_2m', 'N/A')} °C")
+
+        with w2:
+            st.metric("💧 Humidity", f"{weather.get('relative_humidity_2m', 'N/A')} %")
+
+        with w3:
+            st.metric("🌧️ Current Rainfall", f"{weather.get('precipitation', 'N/A')} mm")
+
+        with w4:
+            st.metric("🌬️ Wind Speed", f"{weather.get('wind_speed_10m', 'N/A')} km/h")
+    else:
+        st.warning("Weather data is currently unavailable.")
     # ROI Chart
     st.subheader(" Investment Growth Analysis")
     st.markdown("<br>", unsafe_allow_html=True)
@@ -511,11 +577,64 @@ with tab1:
         st.success(
             "Excellent ROI detected! This project is highly financially beneficial."
         )
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.subheader("🤖 AquaSave AI Advisor")
+
+    user_question = st.text_input(
+        "Ask AquaSave AI about your rainwater harvesting system"
+    )
+
+    if st.button("Get AI Advice"):
+
+        if user_question.strip() == "":
+            st.warning("Please enter a question.")
+        else:
+
+            with st.spinner("Analyzing your project..."):
+
+                project_context = f"""
+                Rainwater Harvesting Analysis
+
+                City: {selected_city}
+                Roof Area: {area} sq m
+                Annual Rainfall: {rainfall} mm
+                Annual Water Collection: {annual_water_collection:.0f} liters
+                Annual Savings: Rs {annual_savings:.0f}
+                ROI: {roi_percentage:.1f}%
+                Payback Period: {payback_text}
+                Recommended Tank Size: {recommended_tank} liters
+
+                User Question:
+                {user_question}
+                """
+
+                response = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": """
+                            You are an expert rainwater harvesting consultant.
+                            Give practical recommendations based on the user's ROI,
+                            rainfall, savings, and tank size.
+                            Keep answers simple and actionable.
+                            """
+                        },
+                        {
+                            "role": "user",
+                            "content": project_context
+                        }
+                    ]
+                )
+
+                answer = response.choices[0].message.content
+
+                st.success(answer)
     pdf = FPDF()
     pdf.add_page()
 
     pdf.set_font("Arial", size=16)
-    pdf.cell(200, 10, txt="AquaSave ROI Report", ln=True, align='C')
+    pdf.cell(200, 10, txt="AquaSave AI Report", ln=True, align='C')
 
     pdf.ln(10)
 
@@ -567,7 +686,7 @@ with tab3:
     st.write("📈 Long-term ROI")
 with tab4:
     st.subheader("About This Project")
-
+    st.write("AquaSave AI: Intelligent Rainwater Harvesting Analytics and Decision Support System")
     st.write("""
         This project helps users estimate the financial and environmental
         benefits of rainwater harvesting systems.
@@ -577,6 +696,8 @@ with tab4:
         - Payback Period Analysis
         - Water Savings Estimation
         - Environmental Impact Metrics
+        - Live Weather Insights
+        - Smart AI Recommendations
         - Interactive Charts
 
         Technologies Used:
@@ -603,4 +724,4 @@ with tab4:
     rainfall pattern, tank capacity, filter quality, water usage, and local installation cost.
     """)
 st.markdown("---")
-st.caption("Developed by Manasvi Devghare | Rainwater Harvesting ROI Calculator")
+st.caption("Developed by Manasvi Devghare | AquaSave AI ")

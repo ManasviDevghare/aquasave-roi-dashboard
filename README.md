@@ -1,39 +1,43 @@
-<<<<<<< HEAD
-# Rainwater Harvesting ROI Calculator 💧
+# AquaSave ROI Dashboard 💧
 
-An interactive web application that calculates the financial and environmental benefits of rainwater harvesting systems.
+AquaSave ROI Dashboard is an interactive web application that calculates the return on investment for rainwater harvesting systems.
+
+## Live Demo
+https://aquasave-roi-dashboard.streamlit.app
 
 ## Features
-- ROI Calculation
-- Payback Period Analysis
-- Water Savings Estimation
-- Environmental Impact Metrics
-- Interactive Charts
-- Smart City Rainfall Selection
+- Rainwater harvesting calculation
+- ROI and payback period analysis
+- Annual and monthly water collection charts
+- Environmental impact analysis
+- Recommended tank capacity
+- Smart recommendations
+- PDF report download
+- Clean dashboard UI
 
 ## Technologies Used
 - Python
 - Streamlit
 - Pandas
 - Plotly
+- FPDF
+- GitHub
+- Streamlit Cloud
 
 ## How It Works
-Users enter:
-- Roof Area
-- City
-- Water Costs
-- System Costs
-- Collection Efficiency
+1. User enters roof area, city, water cost, system cost, and maintenance cost.
+2. App calculates expected rainwater collection using rainfall data.
+3. It estimates annual savings, ROI, payback period, and tank capacity.
+4. Results are displayed using charts and summary cards.
+5. User can download a PDF report.
 
-The system estimates:
-- Annual Water Collection
-- Annual Savings
-- Payback Period
-- ROI Percentage
-- Environmental Impact
+## Formula Used
+Rainwater Collected = Roof Area × Annual Rainfall × Runoff Coefficient
+
+ROI = ((Total Net Savings - System Cost) / System Cost) × 100
+
+## Project Purpose
+This project helps users understand the financial and environmental benefits of rainwater harvesting and promotes sustainable water management.
 
 ## Developed By
 Manasvi Devghare
-=======
-# aquasave-roi-dashboard
->>>>>>> 08524b1ad7c7f9212d4e8442258d3aaecaed78b4
